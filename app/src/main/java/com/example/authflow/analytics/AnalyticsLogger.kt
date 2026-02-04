@@ -1,30 +1,39 @@
 package com.example.authflow.analytics
 
-import android.os.Bundle
 import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.analytics.ktx.logEvent
 
-class AnalyticsLogger(private val analytics: FirebaseAnalytics) {
+class AnalyticsLogger(
+    private val analytics: FirebaseAnalytics
+) {
 
-    fun otpGenerated() {
-        analytics.logEvent("otp_generated", null)
+    fun otpGenerated(email: String) {
+        analytics.logEvent("otp_generated") {
+            param("email", email)
+        }
     }
 
-    fun otpResent() {
-        analytics.logEvent("otp_resent", null)
+    fun otpResent(email: String) {
+        analytics.logEvent("otp_resent") {
+            param("email", email)
+        }
     }
 
     fun otpSuccess() {
-        analytics.logEvent("otp_validation_success", null)
+        analytics.logEvent("otp_validation_success") {
+            param("status", "success")
+        }
     }
 
     fun otpFailure(reason: String) {
-        val bundle = Bundle().apply {
-            putString("reason", reason)
+        analytics.logEvent("otp_validation_failure") {
+            param("reason", reason)
         }
-        analytics.logEvent("otp_validation_failure", bundle)
     }
 
     fun logout() {
-        analytics.logEvent("logout", null)
+        analytics.logEvent("logout") {
+            param("action", "user_logout")
+        }
     }
 }

@@ -23,7 +23,9 @@ class AuthViewModel(
 
     fun sendOtp(email: String): String {
         val otp = otpManager.generate(email)
-        analytics.otpGenerated()
+
+        // Firebase Analytics (KTX DSL style)
+        analytics.otpGenerated(email)
 
         _state.value = AuthState(
             email = email,
@@ -47,12 +49,14 @@ class AuthViewModel(
 
                 _state.value = _state.value.copy(
                     loggedIn = true,
-                    sessionStart = System.currentTimeMillis()
+                    sessionStart = System.currentTimeMillis(),
+                    error = null
                 )
             }
 
             is OtpResult.Invalid -> {
                 analytics.otpFailure("invalid_otp")
+
                 _state.value = _state.value.copy(
                     attemptsLeft = result.attemptsLeft,
                     error = "Invalid OTP. Attempts left: ${result.attemptsLeft}"
@@ -61,6 +65,7 @@ class AuthViewModel(
 
             is OtpResult.Expired -> {
                 analytics.otpFailure("expired_otp")
+
                 _state.value = _state.value.copy(
                     remainingMs = 0,
                     error = "OTP expired"
@@ -69,6 +74,7 @@ class AuthViewModel(
 
             is OtpResult.TooManyAttempts -> {
                 analytics.otpFailure("too_many_attempts")
+
                 _state.value = _state.value.copy(
                     error = "Too many attempts. Please resend OTP."
                 )
@@ -94,7 +100,9 @@ class AuthViewModel(
         if (email.isBlank()) return
 
         otpManager.generate(email)
-        analytics.otpResent()   // ✅ CORRECT EVENT
+
+        //  Firebase Analytics (resend event)
+        analytics.otpResent(email)
 
         _state.value = _state.value.copy(
             remainingMs = 60_000L,
