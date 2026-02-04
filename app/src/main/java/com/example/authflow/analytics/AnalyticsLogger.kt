@@ -9,6 +9,10 @@ class AnalyticsLogger(private val analytics: FirebaseAnalytics) {
         analytics.logEvent("otp_generated", null)
     }
 
+    fun otpResent() {
+        analytics.logEvent("otp_resent", null)
+    }
+
     fun otpSuccess() {
         analytics.logEvent("otp_validation_success", null)
     }

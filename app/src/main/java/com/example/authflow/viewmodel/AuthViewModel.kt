@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.authflow.analytics.AnalyticsLogger
 import com.example.authflow.data.OtpManager
 import com.example.authflow.data.OtpResult
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +18,8 @@ class AuthViewModel(
 
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state
+
+    private var countdownJob: Job? = null
 
     fun sendOtp(email: String): String {
         val otp = otpManager.generate(email)
@@ -40,6 +43,8 @@ class AuthViewModel(
 
             is OtpResult.Success -> {
                 analytics.otpSuccess()
+                countdownJob?.cancel()
+
                 _state.value = _state.value.copy(
                     loggedIn = true,
                     sessionStart = System.currentTimeMillis()
@@ -71,24 +76,38 @@ class AuthViewModel(
         }
     }
 
-
     private fun startCountdown() {
-        viewModelScope.launch {
-            while (true) {
+        countdownJob?.cancel()
+
+        countdownJob = viewModelScope.launch {
+            while (_state.value.remainingMs > 0) {
                 delay(1000)
-                val newTime = _state.value.remainingMs - 1000
-                if (newTime <= 0) {
-                    _state.value = _state.value.copy(remainingMs = 0)
-                    break
-                } else {
-                    _state.value = _state.value.copy(remainingMs = newTime)
-                }
+                _state.value = _state.value.copy(
+                    remainingMs = _state.value.remainingMs - 1000
+                )
             }
         }
     }
 
+    fun resendOtp() {
+        val email = _state.value.email
+        if (email.isBlank()) return
+
+        otpManager.generate(email)
+        analytics.otpResent()   // ✅ CORRECT EVENT
+
+        _state.value = _state.value.copy(
+            remainingMs = 60_000L,
+            attemptsLeft = 3,
+            error = null
+        )
+
+        startCountdown()
+    }
+
     fun logout() {
         analytics.logout()
+        countdownJob?.cancel()
         _state.value = AuthState()
     }
 }

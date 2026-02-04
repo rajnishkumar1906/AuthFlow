@@ -3,7 +3,6 @@ package com.example.authflow
 import android.Manifest
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.collectAsState
@@ -14,7 +13,10 @@ import com.example.authflow.ui.*
 import com.example.authflow.viewmodel.AuthViewModel
 import com.example.authflow.ui.theme.AuthFlowTheme
 import com.google.firebase.analytics.FirebaseAnalytics
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 
+import androidx.compose.runtime.*
 class MainActivity : ComponentActivity() {
 
     private val notificationPermissionLauncher =
@@ -40,13 +42,20 @@ class MainActivity : ComponentActivity() {
         setContent {
             AuthFlowTheme {
 
+                var showSplash by remember { mutableStateOf(true) }
+
                 val state by vm.state.collectAsState()
+                val sessionStart = state.sessionStart
 
                 when {
-                    state.loggedIn -> {
-                        state.sessionStart?.let { start ->
-                            SessionScreen(vm, start)
+                    showSplash -> {
+                        SplashScreen {
+                            showSplash = false
                         }
+                    }
+
+                    state.loggedIn && sessionStart != null -> {
+                        SessionScreen(vm, sessionStart)
                     }
 
                     state.otpSent -> {
@@ -59,5 +68,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
     }
 }

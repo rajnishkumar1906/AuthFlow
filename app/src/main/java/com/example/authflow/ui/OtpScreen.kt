@@ -18,55 +18,85 @@ fun OtpScreen(
     var otp by rememberSaveable { mutableStateOf("") }
     val secondsLeft = state.remainingMs / 1000
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
     ) {
 
-        Text("Enter OTP", style = MaterialTheme.typography.headlineMedium)
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = "Time left: ${secondsLeft}s",
-            color = if (secondsLeft > 0)
-                MaterialTheme.colorScheme.primary
-            else
-                MaterialTheme.colorScheme.error
-        )
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = "Attempts left: ${state.attemptsLeft}",
-            color = MaterialTheme.colorScheme.secondary
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        OutlinedTextField(
-            value = otp,
-            onValueChange = { otp = it },
-            label = { Text("6-digit OTP") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(Modifier.height(16.dp))
-
-        Button(
-            onClick = { vm.verifyOtp(otp) },
-            enabled = secondsLeft > 0 && state.attemptsLeft > 0,
-            modifier = Modifier.fillMaxWidth()
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
         ) {
-            Text("Verify OTP")
-        }
 
-        state.error?.let {
-            Spacer(Modifier.height(12.dp))
-            Text(it, color = MaterialTheme.colorScheme.error)
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Text(
+                    text = "Verify OTP",
+                    style = MaterialTheme.typography.headlineMedium
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Time left: ${secondsLeft}s",
+                    color = if (secondsLeft > 0)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.error
+                )
+
+                Spacer(Modifier.height(4.dp))
+
+                Text(
+                    text = "Attempts left: ${state.attemptsLeft}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+
+                Spacer(Modifier.height(20.dp))
+
+                OutlinedTextField(
+                    value = otp,
+                    onValueChange = { otp = it },
+                    label = { Text("6-digit OTP") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(16.dp))
+
+                Button(
+                    onClick = { vm.verifyOtp(otp) },
+                    enabled = secondsLeft > 0 && state.attemptsLeft > 0,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Verify OTP")
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                TextButton(
+                    onClick = {
+                        vm.resendOtp()
+                        otp = ""
+                    },
+                    enabled = secondsLeft == 0L || state.attemptsLeft == 0
+                ) {
+                    Text("Resend OTP")
+                }
+
+                state.error?.let {
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        text = it,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         }
     }
 }
