@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "843170008080",
+    "project_id": "authflow-9e81a",
+    "storage_bucket": "authflow-9e81a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:843170008080:android:8a40adc95d94d1dd6cce95",
+        "android_client_info": {
+          "package_name": "com.example.authflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzJ4neMvEnyqxvleshKTqKMBwxK8LvB9s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
