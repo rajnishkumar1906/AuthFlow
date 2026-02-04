@@ -1,91 +1,131 @@
-# AuthFlow – Passwordless Authentication (Android)
+---
+
+# AuthFlow – Email + OTP Authentication (Android)
 
 ## Overview
-AuthFlow is an Android application that implements a passwordless login flow using
-Email and OTP. After successful login, the app shows a session screen that tracks
-how long the user stays logged in.
 
-The goal of this project is to demonstrate correct usage of Jetpack Compose,
-state management using ViewModel, and clean separation of UI and business logic.
-All logic is implemented locally without any backend.
+AuthFlow is a simple Android application that demonstrates a **passwordless authentication flow using Email and OTP**, built with **Kotlin** and **Jetpack Compose**.
+
+All authentication logic is implemented **locally** without a backend, focusing on **state management**, **time-based logic**, and **clean separation of UI and business logic**.
 
 ---
 
-## OTP Flow – How It Works
+## How the App Works
 
-1. The user enters an email address and taps **Send OTP**
-2. A 6-digit OTP is generated locally
-3. The OTP:
-   - Expires after 60 seconds
-   - Allows a maximum of 3 validation attempts
-4. OTPs are stored per email to support multiple users safely
-5. If the user requests **Resend OTP**:
-   - The old OTP is invalidated
-   - Attempts are reset
-   - The countdown timer restarts
-
-For development purposes, the OTP is displayed via a local notification and Logcat.
-In a real application, OTP delivery would be handled via email or SMS.
+1. The user enters an email address.
+2. A 6-digit OTP is generated locally.
+3. The user enters the OTP to verify.
+4. On successful verification, the user is logged in and taken to a session screen.
+5. The session screen shows how long the user has been logged in.
+6. The user can log out and return to the login flow.
 
 ---
 
-## OTP Validation & Error Handling
+## OTP Rules Implemented
 
-The app explicitly handles the following cases:
-- Incorrect OTP input
-- OTP expiry
-- Exceeded maximum attempts
-- Resend OTP after failure or expiry
+* OTP length is **6 digits**
+* OTP expires after **60 seconds**
+* Maximum **3 verification attempts**
+* OTP is stored **per email**
+* Generating a new OTP:
 
-Each failure case updates the UI with a clear error message and logs an analytics event.
+  * Invalidates the previous OTP
+  * Resets attempt count
+  * Restarts expiry timer
+* After OTP expiry or exceeding attempts, a **retry cooldown** is applied before resending
 
 ---
 
 ## Session Handling
 
-After successful OTP verification:
-- The session start time is recorded
-- A live session duration (mm:ss) is displayed
-- The timer updates every second using a coroutine
-- Logging out stops the timer and resets session state
-
-The timer logic is lifecycle-safe and does not create multiple running coroutines.
+* Session start time is recorded after successful login
+* Session duration is displayed in **mm:ss** format
+* Session timer updates every second
+* Timer survives recompositions and stops correctly on logout
 
 ---
 
-## Architecture & State Management
+## Architecture
 
-The app follows an MVVM architecture with one-way data flow:
-- ViewModel owns all business logic
-- UI observes state exposed via StateFlow
-- Composables are stateless and react to state changes
+The app follows **MVVM architecture**:
 
-OTP logic is isolated in a dedicated manager class to keep responsibilities clear
-and avoid mixing UI and business logic.
+* **UI (Jetpack Compose)**
+  Displays state and forwards user actions
 
----
+* **ViewModel**
+  Contains all authentication, timer, and state logic using `StateFlow`
 
-## Analytics Integration
+* **State**
+  A single immutable state object drives the entire UI
 
-Firebase Analytics is integrated to track important user actions:
-- OTP generated
-- OTP resent
-- OTP validation success
-- OTP validation failure (with reason)
-- Logout
-
-Analytics calls are triggered from the ViewModel layer to maintain separation
-of concerns. Events were verified using Firebase DebugView.
+This ensures predictable behavior and clean one-way data flow.
 
 ---
 
-## Splash Screen
+## Jetpack Compose Usage
 
-A simple splash screen is implemented using Jetpack Compose.
-It displays the app branding briefly before navigating to the main flow.
-This approach keeps the implementation simple and easy to understand.
+The project uses:
+
+* `@Composable`
+* `remember` and `rememberSaveable`
+* `LaunchedEffect`
+* State hoisting
+* Recomposition-safe UI updates
+
+---
+
+## Firebase Analytics
+
+Firebase Analytics is integrated to track key user actions:
+
+* OTP generated
+* OTP resent
+* OTP validation success
+* OTP validation failure
+* Logout
+
+Events were verified during development using **Firebase DebugView**.
+
+---
+
+## Edge Cases Handled
+
+* Expired OTP
+* Incorrect OTP
+* Exceeded attempt limit
+* Resend OTP flow
+* Retry cooldown handling
+* Screen rotation without breaking state
 
 ---
 
 ## Project Structure
 
+```
+ui/
+ ├── LoginScreen.kt
+ ├── OtpScreen.kt
+ ├── SessionScreen.kt
+ ├── SplashScreen.kt
+
+viewmodel/
+ ├── AuthViewModel.kt
+ ├── AuthState.kt
+
+data/
+ ├── OtpManager.kt
+
+analytics/
+ ├── AnalyticsLogger.kt
+```
+
+---
+
+## Notes
+
+* No global mutable state is used
+* No blocking calls on the main thread
+* Analytics logic is kept separate from UI and ViewModel
+* All logic is implemented locally for demonstration purposes
+
+---
